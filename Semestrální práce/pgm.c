@@ -80,3 +80,22 @@ pgm* readData(const char *file_name, pgm *data){
     fclose(pgm_file);
     return data;
 }
+
+/**
+* Method make file
+*/
+int make_file(const char *file_name){
+	FILE *output;
+	
+	output = fopen(file_name, "w");
+	
+	/* sanity check*/ 
+	if(output == NULL){
+		printf("File wasn't created!");
+		return EXIT_FAILURE;
+	}
+	
+	fprintf(output, "%s", "hehe");
+	
+	fclose(output);
+}

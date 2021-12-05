@@ -16,5 +16,7 @@ typedef struct{
 int **allocate_matrix(int width, int height);
 void free_matrix(int **matrix, int width);
 pgm* readData(const char *file_name, pgm *data);
+int make_file(const char *file_name);
+
 
 #endif
