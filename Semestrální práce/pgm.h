@@ -1,22 +1,21 @@
 #ifndef	__PGM_H__
 #define	__PGM_H__
 
+#include "matrix.h"
 #define	MIN_VALUE 0
 #define	MAX_VALUE 255
 
-//typedef unsigned int uint;
+typedef unsigned int uint;
 
 typedef struct{
-	int width;
-	int height;
-	int max_value;
-	int **matrix;
+	char version[3];
+	uint width, height, max;
+	matrix *matrix;
 }pgm;
 
-int **allocate_matrix(int width, int height);
-void free_matrix(int **matrix, int width);
-pgm* readData(const char *file_name, pgm *data);
-int make_file(const char *file_name);
-
+pgm *read_file(const char *file_name);
+int make_file(const char *file_name, pgm *data);
+int first_passage(pgm *data);
+int second_passage(pgm *data);
 
 #endif

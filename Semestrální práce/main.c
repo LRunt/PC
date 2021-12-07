@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 	
 	/* check arguments */
 	if(argc != 3){
-		printf("Error: Missing argument!\nUsage: ccl.exe <input-file[.pgm]> <output-file>");
+		printf("Error: Missing argument!\nUsage: ccl.exe <input-file[.pgm]> <output-file>\n");
 		return EXIT_FAILURE;
 	}
 	
@@ -36,10 +36,10 @@ int main(int argc, char *argv[]) {
 	if(len < 5){
 		addSuffix(argv[1]);
 	}else{
-		if(*(argv[1] + len - 1) == 'm' && *(argv[1] + len - 2) == 'g' && *(argv[1] + len - 3) == 'p' && *(argv[1] + len - 4) == '.'){
-			printf("true");
-		}else{
-			/*temp = (char *) malloc(sizeof(char) * len + sizeof(char) * 5);
+		if(*(argv[1] + len - 1) != 'm' || *(argv[1] + len - 2) != 'g' || *(argv[1] + len - 3) != 'p' || *(argv[1] + len - 4) != '.'){
+			addSuffix(argv[1]);
+		}
+		/*temp = (char *) malloc(sizeof(char) * len + sizeof(char) * 5);
 			for(int i = 0; i < len; i++){
 				*(temp + i) = *(argv[1] + i); 
 			}
@@ -52,19 +52,23 @@ int main(int argc, char *argv[]) {
 			//char suffix[5] = ".pgm";
 		
 			//strncat(argv[1], suffix, 5);
-		
-			addSuffix(argv[1]);
-		}
 	}
 
-	len = strlen(argv[1]);	
+	len = strlen(argv[2]);
+		if(len < 5){
+		addSuffix(argv[2]);
+	}else{
+		if(*(argv[2] + len - 1) != 'm' || *(argv[2] + len - 2) != 'g' || *(argv[2] + len - 3) != 'p' || *(argv[2] + len - 4) != '.'){
+			addSuffix(argv[2]);
+		}
+	}	
 	
-	printf("\n");
+	/*printf("\n");
 	for(int i = 0; i < len; i++){
 		printf("%c", *(argv[1] + i));
 	}
 	printf("\n");
-	printf("%s", argv[1]);
+	printf("%s\n", argv[1]);*/
 	
 	/*pgm_file = fopen(argv[1], "rb");
 	if (pgm_file == NULL){
@@ -78,7 +82,20 @@ int main(int argc, char *argv[]) {
 	
 	//readData(argv[0], p);
 	
-	make_file(argv[2]);
+	p = read_file(argv[1]);
+	
+	if(p == NULL){
+		printf("Error: pgm struct doesnt exist!\n");
+		return EXIT_FAILURE;
+	}
+	
+	first_passage(p);
+	
+	//print_matrix(p->matrix); 
+	
+	//printf("%s\n", p->version);
+	//printf("jdeme tisknout!");
+	make_file(argv[2], p);
 	
 	return EXIT_SUCCESS;
 }

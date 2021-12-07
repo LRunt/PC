@@ -2,100 +2,260 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pgm.h"
+#include "matrix.h"
+#include "node.h"
 
-int **allocate_matrix(int width, int height){
-	int **return_value;
-	int i;
-	
-	return_value = (int **)malloc(sizeof(int *) * width);
-	if (return_value == NULL){
-		printf("memory allocation failure");
-		exit(EXIT_FAILURE);
-	}
-	
-	for(i = 0; i < width; i++){
-		return_value[i] = (int *)malloc(sizeof(int) * height);
-		if(return_value[i] == NULL){
-			printf("memory allocation failure");
-			exit(EXIT_FAILURE);
-		}
-	}
-	
-	return return_value;
-}
-
-void free_matrix(int **matrix, int width){
-	int i;
-	
-	for(i = 0; i < width; i++){
-		free(matrix[i]);
-	}
-	free(matrix);
-}
-
-/* reading */
-pgm* readData(const char *file_name, pgm *data){
-	FILE *pgm_file;
-	char version[3];
+/**
+* Method read file and create new pgm struct
+*/
+pgm *read_file(const char *file_name){
+	pgm *new;
+	FILE *input = NULL;
 	int i, j;
-	int lo, hi;
+	uint number;
 	
 	/* sanity check*/
-	if(!file_name || !data)return NULL;
+	if(!file_name)return NULL;
 	
-	pgm_file = fopen(file_name, "rb");
-	if (pgm_file == NULL){
-		printf("Cannot open file to read");
-		exit(EXIT_FAILURE);
+	/* memory allocation*/
+	new = (pgm *) malloc(sizeof(pgm));
+	if(!new) return NULL;
+	
+	input = fopen(file_name, "rb");
+	
+	/* sanity check*/
+	if(input == NULL){
+		printf("Error: File was not found!\n");
+		return NULL;
 	}
-	fgets(version, sizeof(version), pgm_file);
-    if (strcmp(version, "P5")) {
-        fprintf(stderr, "Wrong file type!\n");
-        exit(EXIT_FAILURE);
+	
+	fgets(new->version, sizeof(new->version), input);
+	/* testing right format of pgm*/
+	if(strcmp(new->version, "P5")){
+		printf("Error: Wrong file type!\n");
+		return NULL;
 	}
-    fscanf(pgm_file, "%d", &data->height);
-    fscanf(pgm_file, "%d", &data->width);
-    fscanf(pgm_file, "%d", &data->max_value);
-    fgetc(pgm_file);
- 
-    data->matrix = allocate_matrix(data->width, data->height);
-    if (data->max_value > 255) {
-        for (i = 0; i < data->width; ++i) {
-            for (j = 0; j < data->height; ++j) {
-                hi = fgetc(pgm_file);
-                lo = fgetc(pgm_file);
-                data->matrix[i][j] = (hi << 8) + lo;
-            }
-        }
-    }
-    else {
-        for (i = 0; i < data->width; ++i) {
-            for (j = 0; j < data->height; ++j) {
-                lo = fgetc(pgm_file);
-                data->matrix[i][j] = lo;
-            }
-        }
-    }
- 
-    fclose(pgm_file);
-    return data;
+	fscanf(input, "%d", &new->width);
+	fscanf(input, "%d", &new->height);
+    fscanf(input, "%d", &new->max);
+    fgetc(input);
+    new->matrix = create_matrix(new->width, new->height);
+	
+	/* filling the matrix with data */
+	for(i = 0; i < new->height; i++){
+		for(j = 0; j < new->width; j++){
+			number = fgetc(input);
+			if(number != 0xFF && number != 0x00){
+				printf("Error: Data isnt correct!\n");
+				return NULL;
+			}
+			new->matrix->data[i * new->width + j] = number;
+			//printf("%d ", number);
+		}
+		//printf("\n");
+	}
+	
+	//print_matrix(new->matrix);
+	
+	fclose(input);
+		
+	return new;
 }
 
 /**
 * Method make file
 */
-int make_file(const char *file_name){
-	FILE *output;
+int make_file(const char *file_name, pgm *data){
+	FILE *output = NULL;
+	int i, j, number;
 	
-	output = fopen(file_name, "w");
+	/*sanity check */
+	if(!file_name || !data) return EXIT_FAILURE;
+	
+	output = fopen(file_name, "wb");
 	
 	/* sanity check*/ 
 	if(output == NULL){
-		printf("File wasn't created!");
+		printf("Error: File wasn't created!\n");
 		return EXIT_FAILURE;
 	}
 	
-	fprintf(output, "%s", "hehe");
+	fprintf(output, "%s\n", data->version);
+	fprintf(output, "%d %d\n", data->width, data->height);
+	fprintf(output, "%d\n", data->max);
+	
+	for(i = 0; i < data->height; i++){
+		for(j = 0; j < data->width; j++){
+			number = data->matrix->data[i * data->width + j];
+			fputc(number, output);
+		}
+	}
 	
 	fclose(output);
+	
+	return EXIT_SUCCESS;
+}
+
+int first_passage(pgm *data){
+	int *color_equivalence, value;
+	uint number_of_colors = 0, a = 0x00;
+	int i, j, coordinates, max_c = 10;
+	
+	//printf("%d", delka);
+	/* sanity check*/
+	if(!data){
+		printf("Error!");
+		return EXIT_FAILURE;
+	} 
+	
+	//print_matrix(data->matrix); 
+	
+	/* allocation */
+	color_equivalence = malloc(sizeof(node) * data->width * data->height);
+	
+	/*left upper corner*/
+	if(data->matrix->data[0] != 0x00){
+		number_of_colors++;
+		color_equivalence[number_of_colors] = -1;
+		data->matrix->data[0] = number_of_colors;
+	}
+	
+	/** first row without top left corner*/
+	for(i = 1; i < data->width; i++){
+		if(data->matrix->data[i] != 0x00){
+			if(data->matrix->data[i - 1] != 0x00){
+				data->matrix->data[i] = data->matrix->data[i - 1];
+			}else{
+				number_of_colors++;
+				color_equivalence[number_of_colors] = -1;
+				data->matrix->data[i] = number_of_colors % 0xFF;
+			}
+		}
+	}
+	
+	for(i = 0; i < number_of_colors; i++){
+		printf("%d ", color_equivalence[i]);
+	}
+	printf("\n\n");
+	//print_matrix(data->matrix);
+	/*for(i = 1; i < data->height; i++){
+		for(j = 0; j < data->width; j++){	
+			if(data->matrix->data[i * data->width + j - 1] == 0xFF){
+				coordinates = -1;
+				value = -1;
+				if(j != 0){
+					//i-1, j-1
+					if(data->matrix->data[(i - 1) * data->width + j - 1] != 0x00){
+						coordinates = (i - 1) * data->width + j - 1;
+						value = data->matrix->data[(i - 1) * data->width + j - 1];
+					}
+					//i, j-1
+					if(data->matrix->data[i * data->width + j - 1] != 0x00){
+						coordinates = i * data->width + j - 1;
+						if(value != -1 && value != data->matrix->data[i * data->width + j - 1]){
+							color_equivalence[data->matrix->data[i * data->width + j - 1]] = color_equivalence[value];
+							value = data->matrix->data[i * data->width + j - 1];
+						}
+					}
+				}
+				if(j != data->width - 2){
+					//i-1, j+1
+					if(data->matrix->data[(i - 1) * data->width + j + 1] != 0x00){
+						coordinates = (i - 1) * data->width + j + 1;
+						if(value != -1 && value != data->matrix->data[(i - 1) * data->width + j + 1]){
+							color_equivalence[data->matrix->data[(i - 1) * data->width + j + 1]] = color_equivalence[value];
+							value = data->matrix->data[(i - 1) * data->width + j + 1];
+						}
+					}
+				}
+				//i-1, j
+				if(data->matrix->data[(i - 1) * data->width + j] != 0x00){
+					coordinates = (i - 1) * data->width + j;
+					if(value != -1 && value != data->matrix->data[(i - 1) * data->width + j]){
+						color_equivalence[data->matrix->data[(i - 1) * data->width + j]] = color_equivalence[value];
+						value = data->matrix->data[(i - 1) * data->width + j];
+					}
+				}
+				if(value >= 0){
+					//printf("%d ", value);
+					data->matrix->data[i * data->width + j] = data->matrix->data[coordinates];	                                
+				}else{   
+					data->matrix->data[i * data->width + j] = number_of_colors % 0xFF;                                                                 
+				}
+			}
+		}
+	}
+	
+
+	/*for(i = 0; i < data->width; i++){
+		printf("%d ", data->matrix->data[i]);
+	}*/
+	
+	for(i = 1; i < data->height; i++){
+		for(j = 0; j < data->width; j++){
+			if(data->matrix->data[i * data->width + j] != 0x00){
+				//value = -1;
+				coordinates = -1;
+				if(j != data->width - 2){
+					//i-1, j+1
+					if(data->matrix->data[(i - 1) * data->width + j + 1] != 0x00){
+						coordinates = (i - 1) * data->width + j + 1;
+						value = data->matrix->data[(i - 1) * data->width + j +1];
+					}
+				}
+				//i-1, j
+				if(data->matrix->data[(i - 1) * data->width + j] != 0x00){
+					coordinates = (i - 1) * data->width + j;
+				}
+				if(j != 0){
+					//i-1, j-1
+					if(data->matrix->data[(i - 1) * data->width + j - 1] != 0x00){
+						coordinates = (i - 1) * data->width + j - 1;
+					}
+					//i, j-1
+					if(data->matrix->data[i * data->width + j - 1] != 0x00){
+						coordinates = i * data->width + j - 1;
+					}
+				}
+				if(coordinates >= 0){
+					//printf("%d ", value);
+					data->matrix->data[i * data->width + j] = data->matrix->data[coordinates];	                                
+				}else{   
+					number_of_colors++;
+					data->matrix->data[i * data->width + j] = number_of_colors % 0xFF;                                                                 
+				}
+			}
+		}
+	}
+	
+	//print_matrix(data->matrix);
+	
+	/* second passage*/
+	for(i = 0; i < data->height; i++){
+		for(j = 0; j < data->width; j++){
+			if(data->matrix->data[i * data->width + j] != 0x00){
+				//color_equivalence[]
+			}                                                   
+		}	  
+	}
+
+	return EXIT_SUCCESS;
+}
+
+int second_passage(pgm *data){
+	int i, j;
+	
+	/* sanity check*/
+	if(!data){
+		printf("Error!");
+		return EXIT_FAILURE;
+	} 
+	
+	for(i = 0; i < data->height; i++){
+		for(j = 0; j < data->width; j++){
+			if(data->matrix->data[i * data->width + j] != 0x00){
+				
+			}                                                   
+}  }
+	return EXIT_SUCCESS;
 }
