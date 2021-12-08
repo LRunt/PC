@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
 			addSuffix(argv[2]);
 		}
 	}	
+	printf("\n");
 	
 	/*printf("\n");
 	for(int i = 0; i < len; i++){
