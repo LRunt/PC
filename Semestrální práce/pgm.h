@@ -17,5 +17,6 @@ pgm *read_file(const char *file_name);
 int make_file(const char *file_name, pgm *data);
 int first_passage(pgm *data);
 int second_passage(pgm *data);
+int isColision(pgm *data, uint coordinates, int value, int* color_equivalence);
 
 #endif

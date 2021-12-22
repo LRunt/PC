@@ -97,9 +97,9 @@ int make_file(const char *file_name, pgm *data){
 }
 
 int first_passage(pgm *data){
-	int *color_equivalence, value;
+	int *color_equivalence, value, new_value, old_value;
 	uint number_of_colors = 0, a = 0x00;
-	int i, j, num, coordinates, max_c = 10;
+	int i, j,k, num, coordinates, max_c = 10;
 	
 	//printf("%d", delka);
 	/* sanity check*/
@@ -137,31 +137,44 @@ int first_passage(pgm *data){
 		for(j = 0; j < data->width; j++){
 			if(data->matrix->data[i * data->width + j] != 0x00){
 				value = -1;
-				coordinates = -1;
 				if(j < data->width - 2){
 					//i-1, j+1
 					if(data->matrix->data[(i - 1) * data->width + j + 1] != 0x00){
-						coordinates = (i - 1) * data->width + j + 1;
 						value = data->matrix->data[(i - 1) * data->width + j + 1];
 					}
 				}
 				//i-1, j
 				if(data->matrix->data[(i - 1) * data->width + j] != 0x00){
+					new_value = data->matrix->data[(i - 1) * data->width + j];
 					if(value != -1 && value != data->matrix->data[(i - 1) * data->width + j]){
 						if(value < data->matrix->data[(i - 1) * data->width + j]){
 							if(color_equivalence[data->matrix->data[(i - 1) * data->width + j]] == -1 || color_equivalence[data->matrix->data[(i - 1) * data->width + j]] > value){
+								old_value = color_equivalence[data->matrix->data[(i - 1) * data->width + j]];
 								color_equivalence[data->matrix->data[(i - 1) * data->width + j]] = value;
-							}
+								for(k = 0; k < number_of_colors; k++){
+									if(color_equivalence[k] == new_value){
+										color_equivalence[k] = value;
+									}   
+								}
+								for(k = 0; k < number_of_colors; k++){
+									if(color_equivalence[k] == old_value && old_value != -1){
+										color_equivalence[k] = value;
+									}   
+								}
+							} 
 						}else{
 							if(color_equivalence[value] == -1 || color_equivalence[value] > data->matrix->data[(i - 1) * data->width + j]){
 								color_equivalence[value] = data->matrix->data[(i - 1) * data->width + j];
+								for(k = 0; k < number_of_colors; k++){
+									if(color_equivalence[k] == value){
+										color_equivalence[k] = new_value;
+									}	   
+								}
 							}
-							coordinates = (i - 1) * data->width + j;
 							value = data->matrix->data[(i - 1) * data->width + j];
 						}
 						//	
 					}else{
-						coordinates = (i - 1) * data->width + j;
 						value = data->matrix->data[(i - 1) * data->width + j];
 					}
 				}
@@ -169,38 +182,75 @@ int first_passage(pgm *data){
 					//i-1, j-1
 					if(data->matrix->data[(i - 1) * data->width + j - 1] != 0x00){
 						if(value != -1 && value != data->matrix->data[(i - 1) * data->width + j - 1]){
+							new_value = data->matrix->data[(i - 1) * data->width + j - 1];
 							if(value < data->matrix->data[(i - 1) * data->width + j - 1]){
 								if(color_equivalence[data->matrix->data[(i - 1) * data->width + j - 1]] == -1 || color_equivalence[data->matrix->data[(i - 1) * data->width + j - 1]] > value){
+									old_value = color_equivalence[data->matrix->data[(i - 1) * data->width + j - 1]];
 									color_equivalence[data->matrix->data[(i - 1) * data->width + j - 1]] = value;
-								}
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == new_value){
+											color_equivalence[k] = value;
+										}	   
+									}
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == old_value && old_value != -1){
+											color_equivalence[k] = value;
+										}   
+									}
+								}/*else{
+									
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == color_equivalence[data->matrix->data[(i - 1) * data->width + j - 1]]){
+											color_equivalence[k] = value;
+										}	   
+									}
+								}*/
 							}else{
 								if(color_equivalence[value] == -1 || color_equivalence[value] > data->matrix->data[(i - 1) * data->width + j - 1]){
 									color_equivalence[value] = data->matrix->data[(i - 1) * data->width + j - 1];
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == value){
+											color_equivalence[k] = new_value;
+										}	   
+									}
 								}
-								coordinates = (i - 1) * data->width + j - 1;
 								value = data->matrix->data[(i - 1) * data->width + j - 1];
 							}
 						}else{
-							coordinates = (i - 1) * data->width + j - 1;
 							value = data->matrix->data[(i - 1) * data->width + j - 1];
 						}
 					}
 					//i, j-1
 					if(data->matrix->data[i * data->width + j - 1] != 0x00){
 						if(value != -1 && value != data->matrix->data[i * data->width + j - 1]){
+							new_value = data->matrix->data[i * data->width + j - 1];
 							if(value < data->matrix->data[i * data->width + j - 1]){
 								if(color_equivalence[data->matrix->data[i * data->width + j - 1]] == -1 || color_equivalence[data->matrix->data[i * data->width + j - 1]] > value){
+									old_value = color_equivalence[data->matrix->data[i * data->width + j - 1]];
 									color_equivalence[data->matrix->data[i * data->width + j - 1]] = value;
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == new_value){
+											color_equivalence[k] = value;
+										}	   
+									}
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == old_value && old_value != -1){
+											color_equivalence[k] = value;
+										}   
+									}
 								}
 							}else{
 								if(color_equivalence[value] == -1 || color_equivalence[value] > data->matrix->data[i * data->width + j - 1]){
 									color_equivalence[value] = data->matrix->data[i * data->width + j - 1];
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == value){
+											color_equivalence[k] = new_value;
+										}	   
+									}
 								}
-								coordinates = i * data->width + j - 1;
 								value = data->matrix->data[i * data->width + j - 1];
 							}
 						}else{
-							coordinates = i * data->width + j - 1;
 							value = data->matrix->data[i * data->width + j - 1];
 						}
 					}
