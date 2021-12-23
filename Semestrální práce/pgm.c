@@ -151,6 +151,9 @@ int first_passage(pgm *data){
 						if(value < data->matrix->data[(i - 1) * data->width + j]){
 							if(color_equivalence[data->matrix->data[(i - 1) * data->width + j]] == -1 || color_equivalence[data->matrix->data[(i - 1) * data->width + j]] > value){
 								color_equivalence[data->matrix->data[(i - 1) * data->width + j]] = value;
+								if(old_value != -1){
+									color_equivalence[old_value] = value;
+								}
 								for(k = 0; k < number_of_colors; k++){
 									if(color_equivalence[k] == new_value){
 										color_equivalence[k] = value;
@@ -162,20 +165,22 @@ int first_passage(pgm *data){
 									}   
 								}
 							}else{
-									for(k = 0; k < number_of_colors; k++){
-										if(color_equivalence[k] == new_value && old_value != -1){
-											color_equivalence[k] = old_value;
-										}	   
-									}
-									for(k = 0; k < number_of_colors; k++){
-										if(color_equivalence[k] == value && old_value != -1){
-											color_equivalence[k] = old_value;
-										}   
-									}
-								} 
+								for(k = 0; k < number_of_colors; k++){
+									if(color_equivalence[k] == new_value){
+										color_equivalence[k] = old_value;
+									}	   
+								}
+								for(k = 0; k < number_of_colors; k++){
+									if(color_equivalence[k] == value){
+										color_equivalence[k] = old_value;
+									}   
+								}
+								value = old_value;
+							} 
 						}else{
+							old_value = color_equivalence[value];
 							if(color_equivalence[value] == -1 || color_equivalence[value] > data->matrix->data[(i - 1) * data->width + j]){
-								old_value = color_equivalence[value];
+								//old_value = color_equivalence[value];
 								color_equivalence[value] = data->matrix->data[(i - 1) * data->width + j];
 								for(k = 0; k < number_of_colors; k++){
 									if(color_equivalence[k] == value){
@@ -187,8 +192,21 @@ int first_passage(pgm *data){
 										color_equivalence[k] = new_value;
 									}   
 								}
-							}
-							value = data->matrix->data[(i - 1) * data->width + j];
+								value = data->matrix->data[(i - 1) * data->width + j];
+							}else{
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == new_value && old_value != -1){
+											color_equivalence[k] = old_value;
+										}	   
+									}
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == value && old_value != -1){
+											color_equivalence[k] = old_value;
+										}	   
+									}
+									value = old_value;
+								}
+							
 						}
 						//	
 					}else{
@@ -204,6 +222,9 @@ int first_passage(pgm *data){
 							if(value < data->matrix->data[(i - 1) * data->width + j - 1]){
 								if(color_equivalence[data->matrix->data[(i - 1) * data->width + j - 1]] == -1 || color_equivalence[data->matrix->data[(i - 1) * data->width + j - 1]] > value){
 									color_equivalence[data->matrix->data[(i - 1) * data->width + j - 1]] = value;
+									if(old_value != -1){
+										color_equivalence[old_value] = value;
+									}
 									for(k = 0; k < number_of_colors; k++){
 										if(color_equivalence[k] == new_value){
 											color_equivalence[k] = value;
@@ -225,10 +246,12 @@ int first_passage(pgm *data){
 											color_equivalence[k] = old_value;
 										}   
 									}
+									value = old_value;
 								}
 							}else{
+								old_value = color_equivalence[value];
 								if(color_equivalence[value] == -1 || color_equivalence[value] > data->matrix->data[(i - 1) * data->width + j - 1]){
-									old_value = color_equivalence[value];
+									//old_value = color_equivalence[value];
 									color_equivalence[value] = data->matrix->data[(i - 1) * data->width + j - 1];
 									for(k = 0; k < number_of_colors; k++){
 										if(color_equivalence[k] == value){
@@ -240,8 +263,20 @@ int first_passage(pgm *data){
 											color_equivalence[k] = new_value;
 										}   
 									}
+									value = data->matrix->data[(i - 1) * data->width + j - 1];
+								}else{
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == new_value && old_value != -1){
+											color_equivalence[k] = old_value;
+										}	   
+									}
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == value && old_value != -1){
+											color_equivalence[k] = old_value;
+										}	   
+									}
+									value = old_value;
 								}
-								value = data->matrix->data[(i - 1) * data->width + j - 1];
 							}
 						}else{
 							value = data->matrix->data[(i - 1) * data->width + j - 1];
@@ -255,6 +290,9 @@ int first_passage(pgm *data){
 							if(value < data->matrix->data[i * data->width + j - 1]){
 								if(color_equivalence[data->matrix->data[i * data->width + j - 1]] == -1 || color_equivalence[data->matrix->data[i * data->width + j - 1]] > value){
 									color_equivalence[data->matrix->data[i * data->width + j - 1]] = value;
+									if(old_value != -1){
+										color_equivalence[old_value] = value;
+									}
 									for(k = 0; k < number_of_colors; k++){
 										if(color_equivalence[k] == new_value){
 											color_equivalence[k] = value;
@@ -276,10 +314,12 @@ int first_passage(pgm *data){
 											color_equivalence[k] = old_value;
 										}   
 									}
+									value = old_value;
 								}
 							}else{
+								old_value = color_equivalence[value];
 								if(color_equivalence[value] == -1 || color_equivalence[value] > data->matrix->data[i * data->width + j - 1]){
-									old_value = color_equivalence[value];
+									//old_value = color_equivalence[value];
 									color_equivalence[value] = data->matrix->data[i * data->width + j - 1];
 									for(k = 0; k < number_of_colors; k++){
 										if(color_equivalence[k] == value){
@@ -291,8 +331,20 @@ int first_passage(pgm *data){
 											color_equivalence[k] = new_value;
 										}   
 									}
+									value = data->matrix->data[i * data->width + j - 1];
+								}else{
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == new_value && old_value != -1){
+											color_equivalence[k] = old_value;
+										}	   
+									}
+									for(k = 0; k < number_of_colors; k++){
+										if(color_equivalence[k] == value && old_value != -1){
+											color_equivalence[k] = old_value;
+										}	   
+									}
+									value = old_value;
 								}
-								value = data->matrix->data[i * data->width + j - 1];
 							}
 						}else{
 							value = data->matrix->data[i * data->width + j - 1];

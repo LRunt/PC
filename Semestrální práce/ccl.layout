@@ -5,11 +5,11 @@ TopLine=50
 LeftChar=1
 [Editors]
 Order=0,1,2,3,4,6,5
-Focused=-1
+Focused=1
 [Editor_1]
-CursorCol=16
-CursorRow=285
-TopLine=259
+CursorCol=3
+CursorRow=178
+TopLine=179
 LeftChar=1
 [Editor_2]
 CursorCol=56
