@@ -16,7 +16,7 @@ typedef struct{
 pgm *read_file(const char *file_name);
 int make_file(const char *file_name, pgm *data);
 int first_passage(pgm *data);
-int second_passage(pgm *data);
 int detect_colision(pgm *data, int *color_equivalence, int value, uint coordinates, uint number_of_colors);
+void free_pgm(pgm **p);
 
 #endif

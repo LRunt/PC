@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include "matrix.h"
 
+/**
+* Method create matrix
+*/
 matrix *create_matrix(uint cols, uint rows){
 	matrix *new = NULL;
 	
@@ -23,6 +26,9 @@ matrix *create_matrix(uint cols, uint rows){
 	return new;
 }
 
+/**
+* Method print data
+*/
 void print_matrix(matrix *m){
 	int i, j;
 	if(!m){
@@ -38,6 +44,9 @@ void print_matrix(matrix *m){
 	}
 }
 
+/**
+* Method free data
+*/
 void free_matrix(matrix **m){
 	if(!*m) return;
 	free((*m)->data);

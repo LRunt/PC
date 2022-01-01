@@ -14,14 +14,15 @@ int addSuffix(char *prefix){
 	return EXIT_SUCCESS;
 }
 
+/**
+* Main method
+*/
 int main(int argc, char *argv[]) {
 	pgm *p = NULL;
 	FILE *pgm_file;
 	char version[3];
 	int height;
 	char *temp;
-	
-	//printf("%d\n", argc);
 	
 	/* check arguments */
 	if(argc != 3){
@@ -30,30 +31,17 @@ int main(int argc, char *argv[]) {
 	}
 	
 	int len = strlen(argv[1]);
-	//printf("%d\n", len);
-	//printf("%c\n", *argv[1]);
-	//printf("%c", *(argv[1] + len - 1));
+	
+	/* Testing if first argument contains .pgm*/
 	if(len < 5){
 		addSuffix(argv[1]);
 	}else{
 		if(*(argv[1] + len - 1) != 'm' || *(argv[1] + len - 2) != 'g' || *(argv[1] + len - 3) != 'p' || *(argv[1] + len - 4) != '.'){
 			addSuffix(argv[1]);
 		}
-		/*temp = (char *) malloc(sizeof(char) * len + sizeof(char) * 5);
-			for(int i = 0; i < len; i++){
-				*(temp + i) = *(argv[1] + i); 
-			}
-			*(temp + len) = '.';
-			*(temp + len + 1) = 'p';
-			*(temp + len + 2) = 'g';
-			*(temp + len + 3) = 'm';
-			*(temp + len + 4) = '\0';
-			printf("%s", temp);*/
-			//char suffix[5] = ".pgm";
-		
-			//strncat(argv[1], suffix, 5);
 	}
 
+	/* Testing if second argument contains .pgm*/
 	len = strlen(argv[2]);
 		if(len < 5){
 		addSuffix(argv[2]);
@@ -64,39 +52,22 @@ int main(int argc, char *argv[]) {
 	}	
 	printf("\n");
 	
-	/*printf("\n");
-	for(int i = 0; i < len; i++){
-		printf("%c", *(argv[1] + i));
-	}
-	printf("\n");
-	printf("%s\n", argv[1]);*/
-	
-	/*pgm_file = fopen(argv[1], "rb");
-	if (pgm_file == NULL){
-		printf("Cannot open file to read");
-		return EXIT_FAILURE;
-	} else{
-		printf("vse v cajku");
-	}*/
-
-	
-	
-	//readData(argv[0], p);
-	
+	/* rading a pgm file*/
 	p = read_file(argv[1]);
 	
 	if(p == NULL){
-		printf("Error: pgm struct doesnt exist!\n");
+		printf("Error: PGM struct wasn't created!\n");
 		return EXIT_FAILURE;
 	}
 	
+	/* algorithm of coloring of labels*/
 	first_passage(p);
 	
-	//print_matrix(p->matrix); 
-	
-	//printf("%s\n", p->version);
-	//printf("jdeme tisknout!");
+	/* making of pgm file */
 	make_file(argv[2], p);
+	
+	/* free data*/
+	free_pgm(&p);
 	
 	return EXIT_SUCCESS;
 }

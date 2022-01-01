@@ -1,0 +1,154 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage [utf8]{inputenc}
+\usepackage [IL2]{fontenc}
+\usepackage [czech]{babel}
+\usepackage{graphicx}
+\usepackage[numbib]{tocbibind}
+\usepackage{hyperref}
+\usepackage{wrapfig}
+\usepackage{pdfpages}
+\graphicspath{{d:/zzz/}}
+\newcommand{\Break}{\State \textbf{break} }
+
+\title{\includegraphics[width=10cm]{FAV_cmyk}
+
+{\huge Semestrální práce z KIV/PC}
+
+\vspace{0.5cm}
+{\LARGE PŘEBARVOVÁNÍ SOUVISLÝCH OBLASTÍ VE SNÍMKU}
+\vspace{1cm}
+}
+\author{Lukáš Runt (A20B0226P)}
+\date{\vspace{7.5cm} \today}
+
+\begin{document}
+
+\begin{titlepage}
+\clearpage\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+\tableofcontents \newpage
+
+\section{Zadání}
+Naprogramujte v ANSI C přenositelnou {\bf konzolovou aplikaci}, která provede v binárním digitálním obrázku (tj. obsahuje jen černé a bílé body) {\bf obarvení souvislých oblastí} pomocí níže uvedeného algoritmu {\it Connected-Component Labeling} z oboru počítačového vidění. Vaším úkolem je tedy implementace tohoto algoritmu a funkcí rozhraní (tj. načítání a ukládání obrázku, apod.). Program se bude spouštět příkazem
+
+\vspace{0.5cm}
+\centerline{ \texttt{ccl.exe <input-file[.pgm]> <output-file>}}
+\vspace{0.5cm}
+
+\noindent Symbol \texttt{<input-file>} zastupuje jméno vstupního souboru s binárním obrázkem ve formátu {\it Portable Gray Map}, přípona souboru nemusí být uvedena; pokud uvedena není, předpokládejte, že má soubor příponu \texttt{.pgm} Symbol \texttt{<output-file>} zastupuje jméno výstupního souboru s obarveným obrázkem, který vytvoří vaše aplikace. Program tedy může být během testování spuštěn například takto:
+
+\vspace{0.5cm}
+{ \texttt{...\textbackslash>ccl.exe e:\textbackslash images\textbackslash img-inp-01.pgm e:\textbackslash images\textbackslash img-res-01.pgm}}
+\vspace{0.5cm}
+
+Úkolem programu je tedy vytvořit výsledný souboru s obarveným obrázkem uvedeném umístění a s uvedeným jménem. Vstupní i výstupní obrázek bude uložen ve formátu PGM. 
+
+Testujte, zda je vstupní obraz skutečně černobílý. Musí obsahovat pouze pixely s hodnotou \texttt{0x00} a \texttt{0xFF}. Pokud tomu tak není, vypište krátké chybové hlášení (anglicky) a oznamte chybu operačnímu prostředí pomocí nenulového návratového kódu.
+
+\vspace{0.5cm}
+\noindent Hotovou práci odevzdejte v jediném archivu typu ZIP prostřednictvím autamatického odevzdávacího a validačního systému. Postupujte podle instrukcí uvedených na webu předmětu. Archiv nechť obsahuje všechny zdrojové soubory potřebné k přeložení programu, {\bf makefile} pro Windows i Linux (pro překlad v Linuxu připravte soubor pojmenovaný \texttt{makefile} a pro Windows \texttt{makefile.win}) a dokumentaci ve formátu PDF vytvořenou v typografickém systému \TeX, resp. \LaTeX. Bude-li některá z částí chybět, kontrolní skript Vaši práci odmítne.
+
+\vspace{0.5cm}
+\noindent Celé zadání je dostupné na adrese: \url{http://www.kiv.zcu.cz/studies/predmety/pc/data/works/sw2021-02.pdf}
+
+
+\section{Analýza úlohy}
+Zadaný problém lze rozdělit na několik dílčích podproblémů, a to na kontrolu vstupních argumentů argumentů, načítání a vytváření pgm souboru a následně algoritmus, který přebarví souvislé oblasti.
+\subsection{Formát PGM souboru}
+\label{s:2}
+Na vstupu a výstupu programu je soubor ve formátu PGM. Formát tohoto souboru je následující:
+
+\begin{wrapfigure}{l}{0.4\textwidth}
+    \includegraphics{formát pgm}
+    \caption{PGM soubor}
+\end{wrapfigure}
+Každý PGM soubor obsahuje z  "Magické číslo" pro identifikaci typu souboru (v našem případě 'P5', tedy binární šedotónová data), bílý znak (může být mezera, TAB, CR, LF ...), šířku (počet sloupců, řetězcem znaků), bílý znak, výšku (počet řádků, řetězcem znaků), bílý znak, index nejvyšší hodnoty šedé (řetězcem znaků), bílý znak, byty (v jazyce C datový typ \texttt{unsigned char}) představující hodnoty jednotlivých pixelů.
+
+\subsection{Algoritmus Přebarvování souvislých oblastí}
+Přebarvování souvislých oblastí (Connected-Component Labeling, CCL) je dvouprůchodový algoritmus z oblasti počítačového vidění. Jeho vstupem je binární obrázek (takový který obsahuje jen černé a bílé pixely). Bílé pixely představují objekty, které ten se tento algoritmus pokouší izolovat a označit různými barvami, resp. hodnotami intenzity šedé barvy (tedy tzv. labely, česky štítky, značkami). Černé pixely pak představují pozadí.
+
+\subsubsection{První průchod}
+Procházíme obrázek po řádcích. Kazdému nenulovému pixelu ne souřadnicích $[i,j]$ přiřadíme hodnotu podle hodnoty jeho sousedních pixelů, pokud nenulové sousední pixely existují (poloha sousedů je daná maskou na obrázku č. 1). Všechny sousední pixely dané maskou již byly obarveny v předchozích krocích (to je zajištěno tvarem masky).
+\begin{itemize}
+  \item Jsou-li všechny sousední pixely součástí pozadí (mají hodnotu 0x00), přiřadíme pixelu $[i, j]$ dosud nepřidělenou hodnotu, nebo-li novou barvu.
+  \item Má-li právě jeden ze sousedních pixelů nenulovou hodnotu, přiřaíme obarvovanému pixelu hodnotu nenulového sousedního pixelu.
+  \item Je-li více sousedních pixelů nenulových, přiřadíme obarvovanému pixelu hodnotu kteréhokoli nenulového pixelu ze zkoumaného okolí. Pokud byly hodnoty pixelů v masce různé (došlo k tzv. {\it kolizi barev}), zaznamenáme ekvivalenci dvojic do zvláštní datové struktury - tabulky ekvivalence barev.
+\end{itemize}
+\begin{figure}[h]
+\centering 
+\includegraphics{maska}
+\caption{Maska pro přebarvování}
+\end{figure}
+
+\subsubsection{Druhý průchod}
+Po prvním průchodu celého obrázku jsou všechny pixely náležející oblastem (objektům) obarveny, některé oblasti jsou však obarveny více barvami (díky kolizím). Proto musíme znova projít celý obrázek a podle informací o ekvivalenci barev (z tabulky ekvivalence barev získané v průběhu 1. průchodu) přebarvíme pixely těchto oblastí. Z množiny kolizních barev je možné nějak vybrat jednu (první, poslední, náhodnou) nebo opět postupovat při přiřazování barev "od začátku" a jako novou barvu použít index množiny (nesmí být samozřejmě nulový, protože barva 0x00 představuje pozadí).
+
+Po tomto kroku odpovídá každé oblasti označení (obarvení) jedinou, v jiné oblasti se nevyskytující hodnotou (barvou).
+
+\subsection{Zaznamenání kolizí}
+Při prvním průchodu je potřeba si zaznamenávat kolize, pokud je přítomno v masce více rozdílných barev. Tyto kolize lze zaznamenávat pomocí několika níže uvedených metod.
+\subsubsection{Množina}
+Množina je abstraktní datový typ, který je schopen uložit určité hodnoty bez jakéhokoliv pořadí a bez opakujících se hodnot. Narozdíl od pole jsou množiny neuspořádané a neindexované. V informatice je teorie množin užitečná pokud potřebujeme shromáždit data a nezáleží nám na jejich násobnosti nebo pořadí, což je právě náš případ. V případě kolize by se prvky přidávali do množin a při druhém průchodu by se pak bral nejmenší prvek.
+
+\subsubsection{Spojový seznam}
+Spojový seznam je dynamická datová struktura, určená k ukládání dat předem neznámé délky. Základní stavební jednotkou spojového seznamu je uzel, který vždy obsahuje ukládanou hodnotu a ukazatel na následující prvek. V našem případě by toto šlo implementovat tak, že by jeden ukazatel měl více poiterů a nebo by vždy při kolizi vložil prvky do svého seznamu pokud by ještě prvky v seznamu nebyly.
+
+\subsubsection{Pole}
+Tento způsob je velice podobný způsobu se spojovými seznamy. Jedná se o pole, kde každý index, kromě indexu 0, znamená číslo barvy. Obsah indexu pak znamená v případě, že není zrovna roven -1, ukazatel na další barvu (index), se kterou je v kolizi. Pokud je hodnota na indexu rovna hodnotě -1, pak neexistuje žádná další kolize s "menší" barvou.  
+
+\section{Popis implementace}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed purus tellus. Ut faucibus, nibh eu convallis malesuada, neque magna convallis augue, nec vehicula risus felis ac urna. Nunc porttitor est eu erat iaculis, in pharetra elit consequat. Nulla nibh massa, facilisis in efficitur ut, suscipit et massa. Nunc id tristique velit, eu rhoncus leo. Praesent lobortis est eu lacus vulputate suscipit. Proin nec dictum felis, et auctor mi. Praesent justo diam, finibus ac neque ut, vestibulum maximus ligula. Nullam feugiat imperdiet gravida.
+
+Integer magna lectus, faucibus sit amet sem non, dapibus cursus ligula. Nunc nibh dolor, fringilla ut tortor sit amet, iaculis malesuada dolor. Cras vitae ante purus. Integer consectetur, diam nec sagittis egestas, dolor nisi vestibulum risus, vel tincidunt neque tellus quis odio. Donec feugiat non magna ut lacinia. Suspendisse eu risus mollis, ultricies nulla ac, egestas orci. Donec convallis quis massa ut ullamcorper. In hac habitasse platea dictumst. In eleifend metus et sem consectetur, vitae ornare velit accumsan. Phasellus faucibus justo quis commodo luctus. Donec mollis purus in ex rhoncus, id ullamcorper eros euismod. Pellentesque ac ante consequat, interdum orci in, sollicitudin massa. Morbi non tincidunt quam. Ut euismod consectetur ante eget imperdiet. Nam et suscipit justo.
+
+Sed consequat nibh vitae nisl hendrerit, pulvinar hendrerit tellus suscipit. Nullam sed nibh ut felis interdum viverra ac vel erat. Suspendisse diam odio, ultrices et enim mollis, porttitor condimentum justo. Ut sapien enim, viverra at maximus eu, hendrerit non tellus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed metus mi, convallis sit amet metus quis, rutrum malesuada eros. Etiam mattis mauris arcu, ac consectetur metus tincidunt non. Aenean finibus augue id ornare semper. Aliquam erat volutpat. Donec et ullamcorper sapien, in venenatis sem. Mauris maximus massa at urna auctor hendrerit. Proin felis elit, vehicula at nisi in, imperdiet sodales ipsum. Praesent eget odio ut nunc gravida feugiat vitae non lectus.
+
+Donec diam libero, rutrum eget mauris in, commodo dapibus sem. Ut suscipit cursus dapibus. Curabitur et pharetra risus. Donec luctus ipsum at metus ullamcorper eleifend. Praesent molestie commodo augue quis tincidunt. Donec eget ligula gravida, tristique velit eget, congue ligula. Nullam ut maximus augue. Nulla eleifend mauris eu vulputate sollicitudin. Phasellus quis tristique ex. Sed viverra odio sit amet dictum facilisis. In fermentum consectetur quam non dapibus.
+
+
+Sed consequat nibh vitae nisl hendrerit, pulvinar hendrerit tellus suscipit. Nullam sed nibh ut felis interdum viverra ac vel erat. Suspendisse diam odio, ultrices et enim mollis, porttitor condimentum justo. Ut sapien enim, viverra at maximus eu, hendrerit non tellus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed metus mi, convallis sit amet metus quis, rutrum malesuada eros. Etiam mattis mauris arcu, ac consectetur metus tincidunt non. Aenean finibus augue id ornare semper. Aliquam erat volutpat. Donec et ullamcorper sapien, in venenatis sem. Mauris maximus massa at urna auctor hendrerit. Proin felis elit, vehicula at nisi in, imperdiet sodales ipsum. Praesent eget odio ut nunc gravida feugiat vitae non lectus.
+
+Donec diam libero, rutrum eget mauris in, commodo dapibus sem. Ut suscipit cursus dapibus. Curabitur et pharetra risus. Donec luctus ipsum at metus ullamcorper eleifend. Praesent molestie commodo augue quis tincidunt. Donec eget ligula gravida, tristique velit eget, congue ligula. Nullam ut maximus augue. Nulla eleifend mauris eu vulputate sollicitudin. Phasellus quis tristique ex. Sed viverra odio sit amet dictum facilisis. In fermentum consectetur quam non dapibus.
+
+
+\section{Uživatelská příručka}
+
+\subsection{Sestavení}
+Pro snadné sestavení je připraven \texttt{makefile}, který funguje na operačním systému Linux a \texttt{makefile.win}, který funguje na operačním systému Windows. Překlad lze provést příkazem  \texttt{make -f makefile.win}. Příkazy pro přeložení se mohou lišit podle použitého překladače a nastavení.
+
+\subsection{Spuštění}
+Program lze spustit pomocí příkazu:
+
+\vspace{0.5cm}
+\centerline{ \texttt{ccl.exe <input-file[.pgm]> <output-file>}}
+\vspace{0.5cm}
+
+\noindent Kde \texttt{input-file} je cesta k pgm souboru, který obsahuje jen hodnoty \texttt{0x00} a \texttt{0xFF}. Při spuštění se může soubor zadat s příponou \texttt{.pgm} i bez. \texttt{output-file} pak obsahuje cestu a jméno výstupního souboru, který se může zadat s příponou \texttt{.pgm} i bez. 
+\begin{figure}[h]
+\centering 
+\includegraphics{prikladspusteni}
+\caption{Příklad spuštění}
+\end{figure}
+
+Formát vstupního i výstupního souboru je typu pgm (formát je detailně popsán viz.\ref{s:2}). Přebarvení obrázku by mělo vypadat následovně:
+\begin{figure}[h]
+  \centering
+  \begin{minipage}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{w2test.pdf}
+    \caption{Příklad vstupu}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{test.pdf}
+    \caption{Příklad výstupu}
+  \end{minipage}
+\end{figure}
+
+
+\section{Závěr}
+Celkovou práci hodnotím pozitivně, neboť jsem si vyzkoušel práci s jazykem C. Byl to pro mne nepopsatelný zážitek, který mě studijně obohatil a posunul o krok blíže k praktickým aplikacím teoreticky získaných vědomostí. Nyní si bez Cčka nedokážu představit svůj život. Díky jazyku C mám prstoklad na klávesnici, jak kdybych hrál na klavír. Celou noc jsem programoval, byl jsem jako netopýr. Když se mne někdo zeptá na znalost jazyků řeknu, že umím v Cčku, javě, sql a basicu. Odedneška už na nebi svítí poitery místo hvězd. Už se nemůžu dočkat, jak si zase neěco v tomto úžasném jazyce zase něco naprogramuji. 
+
+\end{document}
