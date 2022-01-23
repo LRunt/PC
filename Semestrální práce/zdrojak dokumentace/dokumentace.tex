@@ -8,6 +8,7 @@
 \usepackage{hyperref}
 \usepackage{wrapfig}
 \usepackage{pdfpages}
+\usepackage{url}
 \graphicspath{{d:/zzz/}}
 \newcommand{\Break}{\State \textbf{break} }
 
@@ -17,10 +18,14 @@
 
 \vspace{0.5cm}
 {\LARGE PŘEBARVOVÁNÍ SOUVISLÝCH OBLASTÍ VE SNÍMKU}
-\vspace{1cm}
+\vspace{1cm} 
+
+\Large Lukáš Runt (A20B0226P)
+\vspace{0.5cm} 
+
+\large \itshape lrunt@students.zcu.cz
 }
-\author{Lukáš Runt (A20B0226P)}
-\date{\vspace{7.5cm} \today}
+\date{\vspace{6cm} \today}
 
 \begin{document}
 
@@ -48,14 +53,14 @@ Naprogramujte v ANSI C přenositelnou {\bf konzolovou aplikaci}, která provede 
 Testujte, zda je vstupní obraz skutečně černobílý. Musí obsahovat pouze pixely s hodnotou \texttt{0x00} a \texttt{0xFF}. Pokud tomu tak není, vypište krátké chybové hlášení (anglicky) a oznamte chybu operačnímu prostředí pomocí nenulového návratového kódu.
 
 \vspace{0.5cm}
-\noindent Hotovou práci odevzdejte v jediném archivu typu ZIP prostřednictvím autamatického odevzdávacího a validačního systému. Postupujte podle instrukcí uvedených na webu předmětu. Archiv nechť obsahuje všechny zdrojové soubory potřebné k přeložení programu, {\bf makefile} pro Windows i Linux (pro překlad v Linuxu připravte soubor pojmenovaný \texttt{makefile} a pro Windows \texttt{makefile.win}) a dokumentaci ve formátu PDF vytvořenou v typografickém systému \TeX, resp. \LaTeX. Bude-li některá z částí chybět, kontrolní skript Vaši práci odmítne.
+\noindent Hotovou práci odevzdejte v jediném archivu typu ZIP prostřednictvím automatického odevzdávacího a validačního systému. Postupujte podle instrukcí uvedených na webu předmětu. Archiv nechť obsahuje všechny zdrojové soubory potřebné k přeložení programu, {\bf makefile} pro Windows i Linux (pro překlad v Linuxu připravte soubor pojmenovaný \texttt{makefile} a pro Windows \texttt{makefile.win}) a dokumentaci ve formátu PDF vytvořenou v typografickém systému \TeX, resp. \LaTeX. Bude-li některá z částí chybět, kontrolní skript Vaši práci odmítne.
 
 \vspace{0.5cm}
 \noindent Celé zadání je dostupné na adrese: \url{http://www.kiv.zcu.cz/studies/predmety/pc/data/works/sw2021-02.pdf}
 
 
 \section{Analýza úlohy}
-Zadaný problém lze rozdělit na několik dílčích podproblémů, a to na kontrolu vstupních argumentů argumentů, načítání a vytváření pgm souboru a následně algoritmus, který přebarví souvislé oblasti.
+Zadaný problém lze rozdělit na několik dílčích podproblémů, a to na kontrolu vstupních argumentů, načítání a vytváření pgm souboru a následně algoritmus, který přebarví souvislé oblasti.
 \subsection{Formát PGM souboru}
 \label{s:2}
 Na vstupu a výstupu programu je soubor ve formátu PGM. Formát tohoto souboru je následující:
@@ -64,60 +69,92 @@ Na vstupu a výstupu programu je soubor ve formátu PGM. Formát tohoto souboru 
     \includegraphics{formát pgm}
     \caption{PGM soubor}
 \end{wrapfigure}
-Každý PGM soubor obsahuje z  "Magické číslo" pro identifikaci typu souboru (v našem případě 'P5', tedy binární šedotónová data), bílý znak (může být mezera, TAB, CR, LF ...), šířku (počet sloupců, řetězcem znaků), bílý znak, výšku (počet řádků, řetězcem znaků), bílý znak, index nejvyšší hodnoty šedé (řetězcem znaků), bílý znak, byty (v jazyce C datový typ \texttt{unsigned char}) představující hodnoty jednotlivých pixelů.
+Každý PGM soubor obsahuje "Magické číslo" pro identifikaci typu souboru (v našem případě 'P5', tedy binární šedotónová data), bílý znak (může být mezera, TAB, CR, LF ...), šířku (počet sloupců, řetězcem znaků), bílý znak, výšku (počet řádků, řetězcem znaků), bílý znak, index nejvyšší hodnoty šedé (řetězcem znaků), bílý znak, byty (v jazyce C datový typ \texttt{unsigned char}) představující hodnoty jednotlivých pixelů.
 
-\subsection{Algoritmus Přebarvování souvislých oblastí}
+\subsection{Algoritmus Přebarvování souvislých oblastí} \label{algoritmus}
 Přebarvování souvislých oblastí (Connected-Component Labeling, CCL) je dvouprůchodový algoritmus z oblasti počítačového vidění. Jeho vstupem je binární obrázek (takový který obsahuje jen černé a bílé pixely). Bílé pixely představují objekty, které ten se tento algoritmus pokouší izolovat a označit různými barvami, resp. hodnotami intenzity šedé barvy (tedy tzv. labely, česky štítky, značkami). Černé pixely pak představují pozadí.
 
 \subsubsection{První průchod}
-Procházíme obrázek po řádcích. Kazdému nenulovému pixelu ne souřadnicích $[i,j]$ přiřadíme hodnotu podle hodnoty jeho sousedních pixelů, pokud nenulové sousední pixely existují (poloha sousedů je daná maskou na obrázku č. 1). Všechny sousední pixely dané maskou již byly obarveny v předchozích krocích (to je zajištěno tvarem masky).
+Procházíme obrázek po řádcích. Každému nenulovému pixelu ne souřadnicích $[i, j]$ přiřadíme hodnotu podle hodnoty jeho sousedních pixelů, pokud nenulové sousední pixely existují (poloha sousedů je daná maskou na obrázku č. 1). Všechny sousední pixely dané maskou již byly obarveny v předchozích krocích (to je zajištěno tvarem masky).
 \begin{itemize}
   \item Jsou-li všechny sousední pixely součástí pozadí (mají hodnotu 0x00), přiřadíme pixelu $[i, j]$ dosud nepřidělenou hodnotu, nebo-li novou barvu.
-  \item Má-li právě jeden ze sousedních pixelů nenulovou hodnotu, přiřaíme obarvovanému pixelu hodnotu nenulového sousedního pixelu.
+  \item Má-li právě jeden ze sousedních pixelů nenulovou hodnotu, přiřadíme obarvovanému pixelu hodnotu nenulového sousedního pixelu.
   \item Je-li více sousedních pixelů nenulových, přiřadíme obarvovanému pixelu hodnotu kteréhokoli nenulového pixelu ze zkoumaného okolí. Pokud byly hodnoty pixelů v masce různé (došlo k tzv. {\it kolizi barev}), zaznamenáme ekvivalenci dvojic do zvláštní datové struktury - tabulky ekvivalence barev.
 \end{itemize}
-\begin{figure}[h]
+\begin{figure}[h!]
 \centering 
-\includegraphics{maska}
-\caption{Maska pro přebarvování}
+\includegraphics{maska} 
+\caption{Maska pro přebarvování \cite{Zadani}}
+\label{maska}
 \end{figure}
 
 \subsubsection{Druhý průchod}
-Po prvním průchodu celého obrázku jsou všechny pixely náležející oblastem (objektům) obarveny, některé oblasti jsou však obarveny více barvami (díky kolizím). Proto musíme znova projít celý obrázek a podle informací o ekvivalenci barev (z tabulky ekvivalence barev získané v průběhu 1. průchodu) přebarvíme pixely těchto oblastí. Z množiny kolizních barev je možné nějak vybrat jednu (první, poslední, náhodnou) nebo opět postupovat při přiřazování barev "od začátku" a jako novou barvu použít index množiny (nesmí být samozřejmě nulový, protože barva 0x00 představuje pozadí).
+Po prvním průchodu celého obrázku jsou všechny pixely náležející oblastem (objektům) obarveny, některé oblasti jsou však obarveny více barvami (díky kolizím). Proto musíme znova projít celý obrázek a podle informací o ekvivalenci barev (z tabulky ekvivalence barev získané v průběhu 1. průchodu) přebarvíme pixely těchto oblastí. Z množiny kolizních barev je možné nějak vybrat jednu (první, poslední, náhodnou) nebo opět postupovat při přiřazování barev "od začátku" a jako novou barvu použít index množiny (nesmí být samozřejmě nulový, protože barva \texttt{0x00} představuje pozadí).
 
 Po tomto kroku odpovídá každé oblasti označení (obarvení) jedinou, v jiné oblasti se nevyskytující hodnotou (barvou).
 
 \subsection{Zaznamenání kolizí}
 Při prvním průchodu je potřeba si zaznamenávat kolize, pokud je přítomno v masce více rozdílných barev. Tyto kolize lze zaznamenávat pomocí několika níže uvedených metod.
+
 \subsubsection{Množina}
-Množina je abstraktní datový typ, který je schopen uložit určité hodnoty bez jakéhokoliv pořadí a bez opakujících se hodnot. Narozdíl od pole jsou množiny neuspořádané a neindexované. V informatice je teorie množin užitečná pokud potřebujeme shromáždit data a nezáleží nám na jejich násobnosti nebo pořadí, což je právě náš případ. V případě kolize by se prvky přidávali do množin a při druhém průchodu by se pak bral nejmenší prvek.
+Množina je abstraktní datový typ \cite{Set}, který je schopen uložit určité hodnoty bez jakéhokoliv pořadí a bez opakujících se hodnot. Na rozdíl od pole jsou množiny neuspořádané a neindexované. V informatice je teorie množin užitečná, pokud potřebujeme shromáždit data a nezáleží nám na jejich násobnosti nebo pořadí, což je právě náš případ. V případě kolize by se prvky přidávali do množin a při druhém průchodu by se kontrolovalo ve které množině se prvek nachází, následně by se bral nejmenší prvek.
 
 \subsubsection{Spojový seznam}
-Spojový seznam je dynamická datová struktura, určená k ukládání dat předem neznámé délky. Základní stavební jednotkou spojového seznamu je uzel, který vždy obsahuje ukládanou hodnotu a ukazatel na následující prvek. V našem případě by toto šlo implementovat tak, že by jeden ukazatel měl více poiterů a nebo by vždy při kolizi vložil prvky do svého seznamu pokud by ještě prvky v seznamu nebyly.
+Spojový seznam\cite{LinkedList} je dynamická datová struktura, určená k ukládání dat předem neznámé délky. Základní stavební jednotkou spojového seznamu je uzel, který vždy obsahuje ukládanou hodnotu a ukazatel na následující prvek. V našem případě by toto šlo implementovat tak, že by měl jeden uzel více ukazatelů na více uzlů, se kterými je v kolizi, nebo by se mohl při kolizi vložit prvek do náležitého seznamu, pokud by ještě prvek v seznamu nebyl.
 
-\subsubsection{Pole}
-Tento způsob je velice podobný způsobu se spojovými seznamy. Jedná se o pole, kde každý index, kromě indexu 0, znamená číslo barvy. Obsah indexu pak znamená v případě, že není zrovna roven -1, ukazatel na další barvu (index), se kterou je v kolizi. Pokud je hodnota na indexu rovna hodnotě -1, pak neexistuje žádná další kolize s "menší" barvou.  
+\begin{figure}[h!]
+\centering 
+\includegraphics[width=10cm]{linkedList} 
+\caption{Grafické znázornění spojového seznamu \cite{LinkedList}}
+\end{figure}
+
+\subsubsection{Pole}\label{pole}
+Tento způsob je modifikovaný způsob se spojovými seznamy. Jedná se o pole, kde každý index, kromě indexu 0, znamená index barvy. Obsah indexu pak znamená v případě, že není zrovna roven -1 (-1 znamená, že index nikam neukazuje), ukazatel na index další barvy, se kterou je v kolizi. Kolize se pak vyhodnocují procházením po indexech, dokud není na indexu pole -1, to znamená, že jsme na nejmenší hodnotě barvy, se kterou je barva, kterou vyhodnocujeme, v kolizi. 
+
+\begin{figure}[h!]
+\centering 
+\includegraphics[width=10cm]{ukazka pole} 
+\caption{Grafické znázornění logiky pole}
+\end{figure}
 
 \section{Popis implementace}
+Program obsahuje zdrojové soubory \texttt{main.c}, který zajišťuje hlavní běh programu, \texttt{pgm.c} zajišťuje práci s pgm souborem a \texttt{matrix.c} zajišťuje uložení dat pgm souboru.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed purus tellus. Ut faucibus, nibh eu convallis malesuada, neque magna convallis augue, nec vehicula risus felis ac urna. Nunc porttitor est eu erat iaculis, in pharetra elit consequat. Nulla nibh massa, facilisis in efficitur ut, suscipit et massa. Nunc id tristique velit, eu rhoncus leo. Praesent lobortis est eu lacus vulputate suscipit. Proin nec dictum felis, et auctor mi. Praesent justo diam, finibus ac neque ut, vestibulum maximus ligula. Nullam feugiat imperdiet gravida.
+\subsection{Kontrola a úprava argumentů}
+Při spuštění programu se musejí zadat dva argumenty, program tedy kontroluje zda byl zadán správný počet argumentů. Jelikož uživatel nemusí zadávat typ vstupního souboru (přípona \texttt{.pgm}) musí být zajištěno, aby se soubor při čtení našel. Program tedy k argumentu tuto příponu přidá, pokud chybí, pomocí funkce \texttt{strncat}.
 
-Integer magna lectus, faucibus sit amet sem non, dapibus cursus ligula. Nunc nibh dolor, fringilla ut tortor sit amet, iaculis malesuada dolor. Cras vitae ante purus. Integer consectetur, diam nec sagittis egestas, dolor nisi vestibulum risus, vel tincidunt neque tellus quis odio. Donec feugiat non magna ut lacinia. Suspendisse eu risus mollis, ultricies nulla ac, egestas orci. Donec convallis quis massa ut ullamcorper. In hac habitasse platea dictumst. In eleifend metus et sem consectetur, vitae ornare velit accumsan. Phasellus faucibus justo quis commodo luctus. Donec mollis purus in ex rhoncus, id ullamcorper eros euismod. Pellentesque ac ante consequat, interdum orci in, sollicitudin massa. Morbi non tincidunt quam. Ut euismod consectetur ante eget imperdiet. Nam et suscipit justo.
+\subsection{Struktura pgm}
+Struktura pgm reprezentuje soubor pgm. Tato struktura uchovává informace o typu souboru (náš program přijímá pouze P5), šířku, výšku a kontrast obrázku a nakonec data, která jsou uložena ve struktuře matice \ref{matice}.
 
-Sed consequat nibh vitae nisl hendrerit, pulvinar hendrerit tellus suscipit. Nullam sed nibh ut felis interdum viverra ac vel erat. Suspendisse diam odio, ultrices et enim mollis, porttitor condimentum justo. Ut sapien enim, viverra at maximus eu, hendrerit non tellus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed metus mi, convallis sit amet metus quis, rutrum malesuada eros. Etiam mattis mauris arcu, ac consectetur metus tincidunt non. Aenean finibus augue id ornare semper. Aliquam erat volutpat. Donec et ullamcorper sapien, in venenatis sem. Mauris maximus massa at urna auctor hendrerit. Proin felis elit, vehicula at nisi in, imperdiet sodales ipsum. Praesent eget odio ut nunc gravida feugiat vitae non lectus.
+\subsubsection{Načítání ze souboru}
+Pro načítání dat ze souboru slouží funkce \texttt{read\_file}, která kontroluje, zda přišel soubor ve správném formátu, dále ukládá informace o souboru (šířka, výška, kontrast) a poté se vytvoří matice, která  se naplní hodnotami. Hodnoty se do matice plní znak po znaku, zároveň se kontroluje, zda jsou data jen černobílá (\texttt{0x00} nebo \texttt{0xFF}). Pokud data nejsou černobílá, program skončí výjimkou.
 
-Donec diam libero, rutrum eget mauris in, commodo dapibus sem. Ut suscipit cursus dapibus. Curabitur et pharetra risus. Donec luctus ipsum at metus ullamcorper eleifend. Praesent molestie commodo augue quis tincidunt. Donec eget ligula gravida, tristique velit eget, congue ligula. Nullam ut maximus augue. Nulla eleifend mauris eu vulputate sollicitudin. Phasellus quis tristique ex. Sed viverra odio sit amet dictum facilisis. In fermentum consectetur quam non dapibus.
+\subsubsection{Algoritmus obarvení dat}
+Algoritmus má za úkol funkce \texttt{data\_coloring}. Jedná se o dvojprůchodový algoritmus \cite{CCL} \ref{algoritmus}. Pro rychlejší běh programu jsou pro první průchod vytvořeny tři cykly. První pro levý horní roh (tj. kontroluje se jen hodnota levého rohu), druhý pro první řádek kromě levého rohu (tj. kontroluje se jen prvek "nalevo") a nakonec pro zbylá data, kde se musí kontrolovat všechna data podle masky. U posledního cyklu se musí také kontrolovat kolize, které se zaznamenávají do pole \ref{pole}, neboť je to asi paměťově nevýhodnější. Pole má na začátku danou počáteční velikost a postupně se zvětšuje podle potřeby (pomocí znovurozdělení paměti). Po dokončení prvního průchodu se provede průchod druhý, tedy přebarvení podle zaznamenaných kolizí. 
 
+\subsubsection{Zaznamenávání kolizí}
+O zaznamenávání kolizí se stará funkce \texttt{detect\_colision}, která prochází vždy jednu část masky obr.\ref{maska} a kontroluje jí s aktuální minimální hodntou, která byla zjištěna v jiných částech masky. Do pole na zaznamenání kolizí se pak vždy ukládá nejmenší hodnota. Musí se však také kontrolovat, zda už v poli není uložena menší hodnota. Můžou nastat celkem 3 stavy: nejmenší prvek, je nová hodnota (právě zjištěná hodnota), stará hodnota (hodnota z jiné části masky), nebo hodnota která je uložená v poli o zaznamenávání kolizí na pozici nové nebo staré hodnoty. Ukládání o kolizích se pak provádí tak, že se prochází celé pole o kolizích (\texttt{color\_equivalence}) a hledají se hodnoty u kterých byla zjištěna kolize, jejich hodnota se pak mění na nejmenší zjištěnou hodnotu.
 
-Sed consequat nibh vitae nisl hendrerit, pulvinar hendrerit tellus suscipit. Nullam sed nibh ut felis interdum viverra ac vel erat. Suspendisse diam odio, ultrices et enim mollis, porttitor condimentum justo. Ut sapien enim, viverra at maximus eu, hendrerit non tellus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed metus mi, convallis sit amet metus quis, rutrum malesuada eros. Etiam mattis mauris arcu, ac consectetur metus tincidunt non. Aenean finibus augue id ornare semper. Aliquam erat volutpat. Donec et ullamcorper sapien, in venenatis sem. Mauris maximus massa at urna auctor hendrerit. Proin felis elit, vehicula at nisi in, imperdiet sodales ipsum. Praesent eget odio ut nunc gravida feugiat vitae non lectus.
+\subsubsection{Vytváření souboru}
+Pro vytváření souboru slouží funkce \texttt{make\_file}. Tato funkce vytváří pgm soubor dle stanoveného formátu \ref{s:2}. Data se násobí hodnotou \texttt{0x30} a následně se do souboru uloží zbytek z dělení hodnotou \texttt{0xFF}, aby byly oblasti lépe rozeznatelné.
+\begin{figure}[h!]
+\centering 
+\includegraphics[width=5cm]{zvýraznění} 
+\caption{Výsledný obrázek bez provedení zvýraznění}
+\end{figure}
 
-Donec diam libero, rutrum eget mauris in, commodo dapibus sem. Ut suscipit cursus dapibus. Curabitur et pharetra risus. Donec luctus ipsum at metus ullamcorper eleifend. Praesent molestie commodo augue quis tincidunt. Donec eget ligula gravida, tristique velit eget, congue ligula. Nullam ut maximus augue. Nulla eleifend mauris eu vulputate sollicitudin. Phasellus quis tristique ex. Sed viverra odio sit amet dictum facilisis. In fermentum consectetur quam non dapibus.
+\subsubsection{Uvolňování paměti}
+Paměť, kterou zabírá pgm struktura, uvolňuje funkce \texttt{free\_pgm}. 
 
+\subsection{Struktura matrix} \label{matice}
+Struktura matrix představuje matici, která je implementována jednorozměrným polem. Struktura dále uchovává údaj o počtu sloupců (šířce) a řádků (výšce). Dále jsou implementovány tři funkce, a to: \texttt{create\_matrix} vytvářející matici, \texttt{print\_matrix} vypisující matici a \texttt{free\_matrix} uvolňující paměť.
 
 \section{Uživatelská příručka}
 
 \subsection{Sestavení}
-Pro snadné sestavení je připraven \texttt{makefile}, který funguje na operačním systému Linux a \texttt{makefile.win}, který funguje na operačním systému Windows. Překlad lze provést příkazem  \texttt{make -f makefile.win}. Příkazy pro přeložení se mohou lišit podle použitého překladače a nastavení.
+Pro snadné sestavení je připraven \texttt{makefile}, který funguje na operačním systému Linux a v případě správné konfigurace i na Windows. Sestavení se provede po zavolání příkazu \texttt{make} v kořenovém adresáři. Předpokladem je nainstalovaný {\it GCC} a nástroj {\it make}. 
+
+Pro operační systém Windows je připraven ještě poněkud typičtější \texttt{makefile.win}. Překlad lze provést příkazem \texttt{make -f makefile.win}. Předpokladem je nainstalovaný překladač {\it Microsoft C/C++} a nástroj {\it make} Příkazy pro přeložení se mohou lišit podle použitého překladače a nastavení.
 
 \subsection{Spuštění}
 Program lze spustit pomocí příkazu:
@@ -147,8 +184,41 @@ Formát vstupního i výstupního souboru je typu pgm (formát je detailně pops
   \end{minipage}
 \end{figure}
 
-
+\newpage
 \section{Závěr}
-Celkovou práci hodnotím pozitivně, neboť jsem si vyzkoušel práci s jazykem C. Byl to pro mne nepopsatelný zážitek, který mě studijně obohatil a posunul o krok blíže k praktickým aplikacím teoreticky získaných vědomostí. Nyní si bez Cčka nedokážu představit svůj život. Díky jazyku C mám prstoklad na klávesnici, jak kdybych hrál na klavír. Celou noc jsem programoval, byl jsem jako netopýr. Když se mne někdo zeptá na znalost jazyků řeknu, že umím v Cčku, javě, sql a basicu. Odedneška už na nebi svítí poitery místo hvězd. Už se nemůžu dočkat, jak si zase neěco v tomto úžasném jazyce zase něco naprogramuji. 
+Byl vytvořen program na přebarvování souvislých oblastí. Myslím, že z hlediska paměťové náročnosti se jedná o celkem slušné řešení, které se moc vylepšit nedá, avšak to samé nelze říci o rychlosti. Myslím, že je v mém programu přehnaný počet podmínek a cyklů, bez kterých by však program nefungoval správně. K zlepšení rychlosti by bylo potřeba se na problém podívat z jiného úhlu, a to hlavně na implementování jiného způsobu ukládání kolizí, při této implementaci by nejspíše utrpěla paměťová složitost. Další škraloup na mé práci je horší modifikovatelnost. Metody by možná mohli být kratší a obecnější. Například algoritmus by se dal rozdělit na první a druhý průchod, nebo vylepšit načítání souboru, aby šel lehce implementovat kód pro jiný typ pgm souboru (např. P2).
+
+Celkovou práci hodnotím pozitivně, neboť jsem si vyzkoušel práci s jazykem C. Byl to pro mne nepopsatelný zážitek, který mě studijně obohatil a posunul o krok blíže k praktickým aplikacím teoreticky získaných vědomostí. Získal jsem prstoklad na klávesnici, jak kdybych hrál na klavír, celou noc jsem programoval, byl jsem jako netopýr. Myslím, že mi "Céčko" změnilo pohled na svět a můj život už nebude takový jako předtím. Přinejmenším pokaždé, když půjdu s dívkou na rande, dívat se na noční oblohu, uvidím místo hvězd miliony pointerů. Od té doby co umím alespoň trošku programovat v tomto skvělém jazyce, si připadám, jako kdybych měl oproti normálním programátorům tajnou super schopnost. Takže, když se mne někdo ode dneška zeptá na znalost jazyků, řeknu, že umím v Céčku, javě, sql a basicu.
+
+\begin{thebibliography}{9}
+
+\bibitem{Zadani}
+	Podrobné zadání úlohy č.2,
+	\url {http://www.kiv.zcu.cz/studies/predmety/pc/data/works/sw2021-02.pdf},
+	Kamil Ekštein,
+	2021
+
+\bibitem{CCL}
+	Connected-component labeling, 
+	\url {https://en.wikipedia.org/wiki/Connected-component_labeling},
+ 	Wikipedia, 
+	Wikimedia Foundation, 
+	2021
+
+\bibitem{Set}
+	Set (abstract data type),
+	\url {https://en.wikipedia.org/wiki/Set_(abstract_data_type)},
+ 	Wikipedia, 
+	Wikimedia Foundation,
+ 	2021
+
+\bibitem{LinkedList}
+	Linked list, 
+	\url {https://en.wikipedia.org/wiki/Linked_list},
+ 	Wikipedia,
+	Wikimedia Foundation, 
+	2022
+
+\end{thebibliography}
 
 \end{document}
